@@ -3,3 +3,5 @@ terraform-mine/
 .idea
 *.pem
 custom.tf
+terraform.tfstate
+terraform.tfstate.backup
