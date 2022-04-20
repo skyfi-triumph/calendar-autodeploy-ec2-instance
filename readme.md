@@ -1,1 +1,1 @@
-Instructions at [https://github.com/ocdevel/diy-cloud-gaming/wiki]
+Instructions at [Wiki](https://github.com/ocdevel/diy-cloud-gaming/wiki)
