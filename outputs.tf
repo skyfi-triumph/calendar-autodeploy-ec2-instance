@@ -6,7 +6,7 @@ output "connection-info" {
   value = !(var.state == "init" && var.ami == "default") ? "" : <<-EOF
   IP: ${aws_eip.eip.public_ip}
   Username: Administrator
-  Password: ${rsadecrypt(module.ec2[0].password_data,file("./${var.namespace}.pem"))}
+  Password: ${rsadecrypt(module.ec2[0].password_data, file("./${var.namespace}.pem"))}
 
   After you've setup your box, run:
   TF_VAR_state=snapshot terraform apply --auto-approve

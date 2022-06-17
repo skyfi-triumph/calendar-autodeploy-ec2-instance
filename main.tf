@@ -2,11 +2,12 @@
 # See https://www.terraform.io/language/values/variables
 
 provider "aws" {
-  region  = var.region
+  region = var.region
 }
 
 locals {
   tags = {
-    Name = var.namespace
+    Name         = var.namespace,
+    "Created By" = "Triumph Tech"
   }
 }

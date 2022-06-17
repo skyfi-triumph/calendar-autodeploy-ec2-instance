@@ -23,8 +23,8 @@ module "vpc" {
   name = var.namespace
   cidr = "10.97.0.0/18"
 
-  azs              = [local.az]
-  public_subnets   = ["10.97.0.0/24"]
+  azs            = [local.az]
+  public_subnets = ["10.97.0.0/24"]
 
   tags = local.tags
 }
@@ -37,9 +37,9 @@ module "sg_ec2" {
   description = "Gaming security group (NICE DCV, Remote Desktop, etc)"
   vpc_id      = module.vpc.vpc_id
 
-  egress_rules        = ["all-all"]
+  egress_rules = ["all-all"]
 
-  ingress_with_cidr_blocks = flatten([for ip in local.ip_addresses: [
+  ingress_with_cidr_blocks = flatten([for ip in local.ip_addresses : [
     {
       rule        = "ssh-tcp"
       cidr_blocks = ip
@@ -77,9 +77,9 @@ module "sg_ec2" {
       cidr_blocks = ip
     },
     {
-      from_port = 8000
-      to_port = 8040
-      protocol = local.udp
+      from_port   = 8000
+      to_port     = 8040
+      protocol    = local.udp
       description = "Parsec"
       cidr_blocks = ip
     }

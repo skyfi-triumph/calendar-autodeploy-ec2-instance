@@ -1,5 +1,5 @@
 variable "state" {
-  type    = string
+  type = string
 
   validation {
     condition     = contains(["networking", "init", "snapshot", "stop", "start"], var.state)
@@ -66,5 +66,5 @@ variable "volume_size" {
 }
 
 variable "volume_type" {
-  type    = string
+  type = string
 }
