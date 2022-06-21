@@ -5,9 +5,16 @@ provider "aws" {
   region = var.region
 }
 
+data "aws_caller_identity" "current" {}
+
 locals {
+  current_timestamp = timestamp()
+  current_day = formatdate("YYYY-MM-DD", local.current_timestamp)
   tags = {
-    Name         = var.namespace,
-    "Created By" = "Triumph Tech"
+    Namespace         = var.namespace,
+    "Created By" = "Triumph Tech",
+    "Created On" = local.current_day,
+    "UserID" = data.aws_caller_identity.current.user_id
   }
+  
 }

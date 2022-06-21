@@ -5,3 +5,4 @@ terraform-mine/
 custom.tf
 terraform.tfstate
 terraform.tfstate.backup
+.DS_Store

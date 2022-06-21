@@ -1,11 +1,11 @@
-data "aws_ami" "nice_dcv" {
-  owners      = ["amazon"]
+data "aws_ami" "cloudxr" {
+  owners      = ["aws-marketplace"]
   most_recent = true
 
   filter {
     name = "name"
-    #values = ["ami-0e70ed1f1258f9821"]
-    values = ["DCV-Windows-*-NVIDIA-gaming-*"]
+    #values = ["DCV-Windows-*-NVIDIA-gaming-*"]  #owner=amazon
+    values = ["win2019-server-vWS-472.39-cloudxr-v3.1_ami2-*"] #owner=aws-marketplace
   }
 }
 
@@ -41,7 +41,7 @@ module "ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
 
-  name = var.namespace
+  name = "${var.namespace}-${local.current_day}"
 
   ami                         = var.ami == "default" ? data.aws_ami.nice_dcv.id : var.ami
   instance_type               = var.instance_type
@@ -74,11 +74,14 @@ resource "aws_eip" "eip" {
   tags     = local.tags
 }
 
-#resource "aws_ami_from_instance" "snapshot" {
-#  count = var.state == "snapshot" || var.state == "stop" ? 1 : 0
-#  name               = var.namespace
-#  source_instance_id = module.ec2[0].id
-#  tags = local.tags
-#}
+resource "aws_ami_from_instance" "snapshot" {
+  count = var.state == "snapshot" || var.state == "stop" ? 1 : 0
+  name               = var.namespace
+  source_instance_id = module.ec2[0].id
+  tags = {
+  local.tags,
+  Name = "${local.current_day}-ORG-${var.instance_type}"
+  }
+}
 
 

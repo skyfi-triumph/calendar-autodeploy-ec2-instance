@@ -1,5 +1,5 @@
 output "nice-dcv-image-id" {
-  value = data.aws_ami.nice_dcv.id
+  value = data.aws_ami.cloudxr.id
 }
 
 output "connection-info" {
