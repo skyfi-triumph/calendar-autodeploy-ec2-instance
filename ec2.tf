@@ -43,7 +43,7 @@ module "ec2" {
 
   name = "${var.namespace}-${local.current_day}"
 
-  ami                         = var.ami == "default" ? data.aws_ami.nice_dcv.id : var.ami
+  ami                         = var.ami == "default" ? data.aws_ami.cloudxr.id : var.ami
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.key_pair.key_name
   availability_zone           = local.az
@@ -74,14 +74,16 @@ resource "aws_eip" "eip" {
   tags     = local.tags
 }
 
-resource "aws_ami_from_instance" "snapshot" {
-  count = var.state == "snapshot" || var.state == "stop" ? 1 : 0
-  name               = var.namespace
-  source_instance_id = module.ec2[0].id
-  tags = {
-  local.tags,
-  Name = "${local.current_day}-ORG-${var.instance_type}"
-  }
-}
+# resource "aws_ami_from_instance" "snapshot" {
+#   count              = var.state == "snapshot" || var.state == "stop" ? 1 : 0
+#   name               = var.namespace
+#   source_instance_id = module.ec2[0].id
+#   tags = merge(
+#     local.tags,
+#     {
+#       Name = "${local.current_day}-ORG-${var.instance_type}"
+#     },
+#   )
+# }
 
 

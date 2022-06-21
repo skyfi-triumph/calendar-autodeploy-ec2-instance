@@ -1,4 +1,4 @@
-output "nice-dcv-image-id" {
+output "cloudxr-image-id" {
   value = data.aws_ami.cloudxr.id
 }
 

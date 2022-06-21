@@ -9,12 +9,12 @@ data "aws_caller_identity" "current" {}
 
 locals {
   current_timestamp = timestamp()
-  current_day = formatdate("YYYY-MM-DD", local.current_timestamp)
+  current_day       = formatdate("YYYY-MM-DD", local.current_timestamp)
   tags = {
-    Namespace         = var.namespace,
+    Namespace    = var.namespace,
     "Created By" = "Triumph Tech",
     "Created On" = local.current_day,
-    "UserID" = data.aws_caller_identity.current.user_id
+    "UserID"     = data.aws_caller_identity.current.user_id
   }
-  
+
 }
