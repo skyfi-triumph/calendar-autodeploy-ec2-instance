@@ -1,5 +1,5 @@
-output "cloudxr-image-id" {
-  value = data.aws_ami.cloudxr.id
+output "vr-gaming-image-id" {
+  value = data.aws_ami.vr-gaming.id
 }
 
 output "connection-info" {
@@ -7,6 +7,7 @@ output "connection-info" {
   IP: ${aws_eip.eip.public_ip}
   Username: Administrator
   Password: ${rsadecrypt(module.ec2[0].password_data, file("./${var.namespace}.pem"))}
+ 
 
   After you've setup your box, run:
   TF_VAR_state=snapshot terraform apply --auto-approve

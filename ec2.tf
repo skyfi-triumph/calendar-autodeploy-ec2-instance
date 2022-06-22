@@ -1,16 +1,15 @@
-data "aws_ami" "cloudxr" {
-  owners      = ["aws-marketplace"]
+data "aws_ami" "vr-gaming" {
+  owners      = [var.ami_owner]
   most_recent = true
 
   filter {
-    name = "name"
-    #values = ["DCV-Windows-*-NVIDIA-gaming-*"]  #owner=amazon
-    values = ["win2019-server-vWS-472.39-cloudxr-v3.1_ami2-*"] #owner=aws-marketplace
+    name   = "name"
+    values = [var.ami_filter]
   }
 }
 
 # Use this data block after creating own AMI from Objective Reality Games setup
-# data "aws_ami" "nice_dcv" {
+# data "aws_ami" "vr-gaming" {
 #   owners = ["366706138918"]
 #   most_recent = true
 
@@ -24,11 +23,13 @@ data "aws_ami" "cloudxr" {
 resource "tls_private_key" "key" {
   algorithm = "RSA"
 }
+
 resource "local_sensitive_file" "private_key" {
   filename        = "./${var.namespace}.pem"
   content         = tls_private_key.key.private_key_pem
   file_permission = "0400"
 }
+
 resource "aws_key_pair" "key_pair" {
   key_name   = var.namespace
   public_key = tls_private_key.key.public_key_openssh
@@ -43,7 +44,7 @@ module "ec2" {
 
   name = "${var.namespace}-${local.current_day}"
 
-  ami                         = var.ami == "default" ? data.aws_ami.cloudxr.id : var.ami
+  ami                         = var.ami == "default" ? data.aws_ami.vr-gaming.id : var.ami
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.key_pair.key_name
   availability_zone           = local.az
@@ -52,7 +53,7 @@ module "ec2" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.this.name
   get_password_data           = var.ami == "default"
-  user_data                   = templatefile("gpuMetrics.txt", {})
+  user_data                   = templatefile("gpuMetrics.txt", { admin_password = var.admin_password })
 
   create_spot_instance                = var.spot_price == null ? false : true
   spot_price                          = var.spot_price
@@ -66,6 +67,10 @@ module "ec2" {
   ]
 
   tags = local.tags
+
+  depends_on = [
+    local_sensitive_file.private_key
+  ]
 }
 
 resource "aws_eip" "eip" {
@@ -85,5 +90,3 @@ resource "aws_eip" "eip" {
 #     },
 #   )
 # }
-
-

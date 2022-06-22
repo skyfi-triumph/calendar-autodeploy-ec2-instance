@@ -1,4 +1,8 @@
 <powershell>
+netsh advfirewall firewall add rule name="WinRM in" protocol=TCP dir=in profile=any localport=5985 remoteip=any localip=any action=allow
+$admin = [adsi]("WinNT://./administrator, user")
+$admin.psbase.invoke("SetPassword", "${admin_password}")
+
 ### This script configures a server for usage with AWS custom CloudWatch metrics.  It creates scheduled tasks to run the custom metrics script on a schedule. ###
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 

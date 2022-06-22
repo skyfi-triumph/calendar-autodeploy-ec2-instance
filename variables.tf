@@ -11,6 +11,18 @@ variable "ami" {
   type = string
 }
 
+variable "ami_owner" {
+  type = string
+}
+
+variable "ami_filter" {
+  type = string
+}
+
+variable "admin_password" {
+  type = string
+}
+
 # Namespace & tags will help you identify your resources later (know what to
 # terminate, observe AWS costs by this service, etc)
 variable "namespace" {

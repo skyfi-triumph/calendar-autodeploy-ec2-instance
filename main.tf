@@ -13,8 +13,7 @@ locals {
   tags = {
     Namespace    = var.namespace,
     "Created By" = "Triumph Tech",
-    "Created On" = local.current_day,
-    "UserID"     = data.aws_caller_identity.current.user_id
+    "Created On" = local.current_day
   }
 
 }

@@ -1,8 +1,29 @@
+# Ignore vscode
+**.vscode
+
+# Ignore virtual environment
+**venv
+
+# Ignore tfstate
+*.tfstate
+**tfstate.*
+
+# Ignore terraform installs
+**.terraform
+
+# Ignore pem file(s)
+**.pem
+
+# Don't ask why this happened often enough to warrant inclusion...
+crash.log
+
+# Ignore vim swap files
+**.swp
+
+# Ignore the Lambda .zip file, if any
+**.zip
+
 terraform-mine/
-.terraform*
 .idea
-*.pem
 custom.tf
-terraform.tfstate
-terraform.tfstate.backup
 .DS_Store
