@@ -7,13 +7,15 @@ data "http" "my_ip" {
 }
 
 locals {
-  tcp = 6
-  udp = 17
-
-  # Note, only one subnet (for that AZ) is created in this file. Should I add more, eg if you can't find capacity for your launched instance?
-  az = element(data.aws_availability_zones.available.names, 0)
-
+  # security group vars
+  tcp          = 6
+  udp          = 17
   ip_addresses = [for ip in var.ip_addresses : "${ip == "mine" ? chomp(data.http.my_ip.body) : ip}/32"]
+
+  # vpc vars
+  vpc_cidr = "10.200.0.0/16"
+  vpc_name = join("-", [var.namespace, var.region, "vpc"])
+  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 }
 
 module "vpc" {
@@ -21,10 +23,15 @@ module "vpc" {
   version = "~> 3.0"
 
   name = var.namespace
-  cidr = "10.97.0.0/18"
+  cidr = local.vpc_cidr
+  azs  = local.azs
 
-  azs            = [local.az]
-  public_subnets = ["10.97.0.0/24"]
+  public_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
+
+  create_igw           = true
+  enable_dns_hostnames = true
+
+  public_subnet_tags = local.tags
 
   tags = local.tags
 }

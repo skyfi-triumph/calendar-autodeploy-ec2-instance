@@ -1,7 +1,7 @@
 resource "aws_cloudwatch_dashboard" "main" {
-  count = var.state == "init" ? 1 : 0
+  count = var.state == "init" ? var.ec2_count : 0
 
-  dashboard_name = "ObjectiveRealityGames-${module.ec2[0].id}"
+  dashboard_name = "ObjectiveRealityGames-${module.ec2[count.index].id}"
 
   dashboard_body = <<EOF
 {
@@ -18,7 +18,7 @@ resource "aws_cloudwatch_dashboard" "main" {
             "GPUStats",
             "GPUUtilization",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
@@ -39,7 +39,7 @@ resource "aws_cloudwatch_dashboard" "main" {
             "GPUStats",
             "MemoryUtilization",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
@@ -60,7 +60,7 @@ resource "aws_cloudwatch_dashboard" "main" {
             "CustomMetrics",
             "Memory Usage",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
@@ -81,7 +81,7 @@ resource "aws_cloudwatch_dashboard" "main" {
             "CustomMetrics",
             "C: Usage",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
@@ -102,13 +102,13 @@ resource "aws_cloudwatch_dashboard" "main" {
             "GPUStats",
             "MemoryUsed",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ],
           [
             "GPUStats",
             "MemoryFree",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
@@ -129,13 +129,13 @@ resource "aws_cloudwatch_dashboard" "main" {
             "CustomMetrics",
             "C: Free",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ],
           [
             "CustomMetrics",
             "C: Total",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
@@ -156,13 +156,13 @@ resource "aws_cloudwatch_dashboard" "main" {
             "CustomMetrics",
             "Total Memory",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ],
           [
             "CustomMetrics",
             "Free Memory",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
@@ -183,7 +183,7 @@ resource "aws_cloudwatch_dashboard" "main" {
             "GPUStats",
             "Temperature",
             "InstanceID",
-            "${module.ec2[0].id}"
+            "${module.ec2[count.index].id}"
           ]
         ],
         "period": 300,
