@@ -181,7 +181,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         "metrics": [
           [
             "GPUStats",
-            "Temperature",
+            "DisplayActive",
             "InstanceID",
             "${module.ec2[count.index].id}"
           ]
@@ -189,7 +189,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         "period": 300,
         "stat": "Average",
         "region": "${var.region}",
-        "title": "Temp[Celcius]"
+        "title": "DisplayActive"
       }
     }
   ]
