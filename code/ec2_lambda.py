@@ -63,12 +63,10 @@ def lambda_handler(event, context):
     instance[0].reload()
 
     instance_id = instance[0].instance_id
-    private_ip = instance[0].private_ip_address
     public_ip = instance[0].public_ip_address
 
     print(f"InstanceID = {instance_id}")
     print(f"publicIP = {public_ip}")
-    print(f"privateIP = {private_ip}")
     return instance_id
 
 
