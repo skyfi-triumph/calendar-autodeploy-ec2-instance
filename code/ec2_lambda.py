@@ -1,6 +1,49 @@
+
+"""
+Lambda function to list/create/start/stop/terminate an ec2 instance.
+Event can be passed like:
+
+TO LIST:
+{
+  "action" : "list"
+}
+
+TO CREATE:
+{
+  "action" : "create",
+  "REGION" : "us-east-1",
+  "INSTANCE_TYPE" : "g5.xlarge",
+  "TIME" : "2",
+  "USER" : "Fredrick"
+}
+
+TO TERMINATE:
+{
+  "action" : "terminate",
+  "ins_id" : "i-05d2b0d6716afbc6f"
+}
+
+TO START:
+{
+  "action" : "start",
+  "ins_id" : "i-05d2b0d6716afbc6f"
+}
+
+TO STOP:
+{
+  "action" : "stop",
+  "ins_id" : "i-05d2b0d6716afbc6f"
+}
+
+"""
+
 import os
 import boto3
 import time
+import json
+import time
+ts = time.gmtime()
+now = time.strftime("%Y-%m-%d-%H:%M:%S", ts)
 
 AMI = os.environ['AMI']
 INSTANCE_TYPE = os.environ['INSTANCE_TYPE']
@@ -17,7 +60,29 @@ IAM_INSTANCE_PROFILE_ARN        = os.environ['IAM_INSTANCE_PROFILE_ARN']
 
 ec2 = boto3.resource('ec2', region_name=REGION)
 
-def lambda_handler(event, context):
+def list_instances():
+#   Lists all the ec2 instances with their state, public Ip, tags. 
+
+    instances = {}
+    for instance in ec2.instances.all():
+        tags = [i for i in instance.tags if i.get('Created By') == 'Triumph Tech']  
+
+        # if len(tags)>0:
+        instances[instance.id] = {
+            "type": instance.instance_type,
+            "public_ip": instance.public_ip_address,
+            "state": instance.state.get('Name'),
+            "tag": instance.tags
+            }
+        
+    for i in instances.items():
+        print(i)
+        
+    return instances
+
+
+def create_instances(REGION,INSTANCE_TYPE,TIME,USER):
+    # Create instance
 
     instance = ec2.create_instances(
         ImageId=AMI,
@@ -40,7 +105,7 @@ def lambda_handler(event, context):
         ],
         IamInstanceProfile={
         'Name': IAM_INSTANCE_PROFILE_NAME
-    },
+        },
         
         TagSpecifications=[
             {
@@ -52,13 +117,24 @@ def lambda_handler(event, context):
                     },
                     {
                         'Key': 'Name',
-                        'Value': 'objective-reality-games',
+                        'Value': f"objective-reality-games-{USER}-{now}",
+                    },
+                    {
+                        'Key': 'TIME',
+                        'Value': TIME,
+                    },
+                    {
+                        'Key': 'USER',
+                        'Value': USER,
+                    },
+                    {
+                        'Key': 'Created On',
+                        'Value': now,
                     }
                 ],
             },
         ],
     )
-
     instance[0].wait_until_running()
     instance[0].reload()
 
@@ -67,161 +143,7 @@ def lambda_handler(event, context):
 
     print(f"InstanceID = {instance_id}")
     print(f"publicIP = {public_ip}")
-    return instance_id
-
-
-
-
-
-
-
-"""
-Lambda function to list/create/start/stop/terminate/reboot an ec2 instance.
-Event can be passed like:
-{
-  "action" : "list" -> to list all the instances.
-           : "create" -> to create all the instances.
-           : "start" -> to start a already set instance.
-           : "stop" -> to stop a already set instance.
-           : "terminate" -> to terminate all the instances.
-           : "reboot" -> to reboot all the instances.
-}
-"""
-"""
-import json
-import boto3
-
-AMI = os.environ['AMI']
-INSTANCE_TYPE = os.environ['INSTANCE_TYPE']
-KEY_NAME = os.environ['KEY_NAME']
-SUBNET_ID = os.environ['SUBNET_ID']
-REGION = process.env.AWS_REGION
-ec2 = boto3.resource('ec2', region_name = REGION)
-
-
-def list_instances():
-  '''
-  Lists all the ec2 instances with their state, public Ip, name etc. 
-  '''
-    instances = {}
-    for instance in ec2.instances.all():
-        tags = [i for i in instance.tags if i.get('Value') == 'Cron']  
-
-        # if len(tags)>0:
-        instances[instance.id] = {
-            "type": instance.instance_type,
-            "public_ip": instance.public_ip_address,
-            "state": instance.state.get('Name'),
-            # "tag": tags
-            
-            }
-        
-    for i in instances.items():
-        print(i)
-        
-    return instances
-
-
-def create_instances(id):
-    ec2 = boto3.client('ec2')
-    response = ec2.run_instances(
-        ImageId=AMI,
-        InstanceType=INSTANCE_TYPE,
-        KeyName=KEY_NAME,
-        MaxCount=1,
-        MinCount=1,
-        BlockDeviceMappings=[
-            {
-                'DeviceName': 'string',
-                'VirtualName': 'string',
-                'Ebs': {
-                    'DeleteOnTermination': True|False,
-                    'Iops': 123,
-                    'SnapshotId': 'string',
-                    'VolumeSize': 123,
-                    'VolumeType': 'standard'|'io1'|'io2'|'gp2'|'sc1'|'st1'|'gp3',
-                    'KmsKeyId': 'string',
-                    'Throughput': 123,
-                    'OutpostArn': 'string',
-                    'Encrypted': True|False
-                },
-                'NoDevice': 'string'
-            },
-        ],
-        SecurityGroupIds=[
-            'string',
-        ],
-        SecurityGroups=[
-            'string',
-        ],
-        SubnetId='string',
-        UserData='string',
-        ClientToken='string',
-        IamInstanceProfile={
-            'Arn': 'string',
-            'Name': 'string'
-        },
-        NetworkInterfaces=[
-            {
-                'AssociatePublicIpAddress': True|False,
-                'DeleteOnTermination': True|False,
-                'Description': 'string',
-                'DeviceIndex': 123,
-                'Groups': [
-                    'string',
-                ],
-                'Ipv6AddressCount': 123,
-                'Ipv6Addresses': [
-                    {
-                        'Ipv6Address': 'string'
-                    },
-                ],
-                'NetworkInterfaceId': 'string',
-                'PrivateIpAddress': 'string',
-                'PrivateIpAddresses': [
-                    {
-                        'Primary': True|False,
-                        'PrivateIpAddress': 'string'
-                    },
-                ],
-                'SecondaryPrivateIpAddressCount': 123,
-                'SubnetId': 'string',
-                'AssociateCarrierIpAddress': True|False,
-                'InterfaceType': 'string',
-                'NetworkCardIndex': 123,
-                'Ipv4Prefixes': [
-                    {
-                        'Ipv4Prefix': 'string'
-                    },
-                ],
-                'Ipv4PrefixCount': 123,
-                'Ipv6Prefixes': [
-                    {
-                        'Ipv6Prefix': 'string'
-                    },
-                ],
-                'Ipv6PrefixCount': 123
-            },
-        ],
-        TagSpecifications=[
-            {
-                'ResourceType': 'client-vpn-endpoint'|'customer-gateway'|'elastic-ip'|'image'|'instance'|'key-pair',
-                'Tags': [
-                    {
-                        'Key': 'string',
-                        'Value': 'string'
-                    },
-                ]
-            },
-        ],
-        MetadataOptions={
-            'HttpTokens': 'optional'|'required',
-            'HttpPutResponseHopLimit': 123,
-            'HttpEndpoint': 'disabled'|'enabled',
-            'InstanceMetadataTags': 'disabled'|'enabled'
-        },
-        DryRun=True|False,
-        )
+    response = public_ip
     return response
 
 def start_instance(id):
@@ -239,25 +161,10 @@ def terminate_instance(id):
     response = ec2.terminate_instances(InstanceIds=[id], DryRun=False)
     return response
    
-def reboot_instance(id):
-    ec2 = boto3.client('ec2')
-    try:
-        ec2.reboot_instances(InstanceIds=[id], DryRun=True)
-    except Exception as e:
-        if 'DryRunOperation' not in str(e):
-            print("You don't have permission to reboot instancess.")
-            raise
-    
-    try:
-        response = ec2.reboot_instances(InstanceIds=[id], DryRun=False)
-        print('Success', response)
-    except Exception as e:
-        print('Error', e)
 
 
 def lambda_handler(event, context):
-    # TODO implement
-    
+
     data = {}
     print(event)
     if event.get('action') == 'list':
@@ -265,27 +172,26 @@ def lambda_handler(event, context):
         print(data)
     
     elif event.get('action') == 'create':
-        ins_id = ''
-        data = create_instances(ins_id)
+        REGION = event['REGION']
+        INSTANCE_TYPE = event['INSTANCE_TYPE']
+        TIME = event['TIME']
+        USER = event['USER']
+        data = create_instances(REGION,INSTANCE_TYPE,TIME,USER)
 
     elif event.get('action') == 'start':
         ins_id = ''
         data = start_instance(ins_id)
     
     elif event.get('action') == 'stop':
-        ins_id = ''
+        ins_id = event['ins_id']
         data = stop_instance(ins_id)
 
     elif event.get('action') == 'terminate':
-        ins_id = ''
+        ins_id = event['ins_id']
         data = terminate_instance(ins_id)
 
-    elif event.get('action') == 'reboot':
-        ins_id = ''
-        data = reboot_instance(ins_id)
- 
     return {
         'statusCode': 200,
         'body': json.dumps(data)
     }
-    """
+
