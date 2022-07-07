@@ -36,9 +36,17 @@ mkdir C:\Scripts
 New-Item C:\Scripts\GPUStats.ps1
 Set-Content C:\Scripts\GPUStats.ps1 -Value @' 
 #Get Stats from NVIDIA-SMI 
-$STATS = & 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' --query-gpu=temperature.gpu,memory.used,memory.free,utilization.gpu,utilization.memory,display.active --format=csv,nounits
+$STATS = & 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' --query-gpu=memory.used,utilization.gpu,utilization.memory,encoder.stats.averageLatency --format=csv,nounits
 #Convert to PS Object 
 $object = ConvertFrom-Csv -InputObject $STATS -Delimiter ','
+
+$DISPLAY = & 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' --query-gpu=display_active --format=csv,nounits 
+$object2 = $DISPLAY | Foreach {
+    if ( $DISPLAY -like '*Disabled'){ $DISPLAY -replace "Disabled", "0" }
+    else { $DISPLAY -replace "*Enabled", "1" }
+}
+$object2 = ConvertFrom-Csv -InputObject $object2 -Delimiter ','
+$object2 = echo $object2[0]
 
 ### This script creates custom CloudWatch metrics in AWS and sends metric data ###
 # Fill $param, $namespace, and $instanceID with the proper values #
@@ -48,31 +56,8 @@ $instanceID = Get-EC2InstanceMetadata -Path '/instance-id'
 # GPU Metrics
 $dat = New-Object Amazon.CloudWatch.Model.MetricDatum
 $dat.Timestamp=(Get-Date).ToUniversalTime()
-$dat.MetricName="Temperature"
-$dat.Value=$object.'temperature.gpu'
-$dat.Unit="None"
-$dim = New-Object Amazon.CloudWatch.Model.Dimension
-$dim.Name = "InstanceID"
-$dim.Value = $instanceID
-$dat.Dimensions=$dim
-Write-CWMetricData -Namespace "GPUStats" -MetricData $dat -Verbose
-
-
-$dat = New-Object Amazon.CloudWatch.Model.MetricDatum
-$dat.Timestamp=(Get-Date).ToUniversalTime()
-$dat.MetricName="MemoryUsed"
+$dat.MetricName="GPUMemoryUsed"
 $dat.Value=$object.'memory.used [MiB]'
-$dat.Unit="Megabytes"
-$dim = New-Object Amazon.CloudWatch.Model.Dimension
-$dim.Name = "InstanceID"
-$dim.Value = $instanceID
-$dat.Dimensions=$dim
-Write-CWMetricData -Namespace "GPUStats" -MetricData $dat -Verbose
-
-$dat = New-Object Amazon.CloudWatch.Model.MetricDatum
-$dat.Timestamp=(Get-Date).ToUniversalTime()
-$dat.MetricName="MemoryFree"
-$dat.Value=$object.'memory.free [MiB]'
 $dat.Unit="Megabytes"
 $dim = New-Object Amazon.CloudWatch.Model.Dimension
 $dim.Name = "InstanceID"
@@ -93,7 +78,7 @@ Write-CWMetricData -Namespace "GPUStats" -MetricData $dat -Verbose
 
 $dat = New-Object Amazon.CloudWatch.Model.MetricDatum
 $dat.Timestamp=(Get-Date).ToUniversalTime()
-$dat.MetricName="MemoryUtilization"
+$dat.MetricName="GPUMemoryUtilization"
 $dat.Value="$($object.'utilization.memory [%]')"
 $dat.Unit="Percent"
 $dim = New-Object Amazon.CloudWatch.Model.Dimension
@@ -105,8 +90,19 @@ Write-CWMetricData -Namespace "GPUStats" -MetricData $dat -Verbose
 $dat = New-Object Amazon.CloudWatch.Model.MetricDatum
 $dat.Timestamp=(Get-Date).ToUniversalTime()
 $dat.MetricName="DisplayActive"
-$dat.Value=$object.'display.active'
+$dat.Value=$object2.'display_active'
 $dat.Unit="None"
+$dim = New-Object Amazon.CloudWatch.Model.Dimension
+$dim.Name = "InstanceID"
+$dim.Value = $instanceID
+$dat.Dimensions=$dim
+Write-CWMetricData -Namespace "GPUStats" -MetricData $dat -Verbose
+
+$dat = New-Object Amazon.CloudWatch.Model.MetricDatum
+$dat.Timestamp=(Get-Date).ToUniversalTime()
+$dat.MetricName="GPULatency"
+$dat.Value="$($object.'encoder.stats.averageLatency')"
+$dat.Unit="Microseconds"
 $dim = New-Object Amazon.CloudWatch.Model.Dimension
 $dim.Name = "InstanceID"
 $dim.Value = $instanceID
@@ -149,43 +145,6 @@ $data.Unit = "Percent"
 $data.Value = "$((($ram - $free) / $ram) * 100)"
 Write-CWMetricData -Namespace "CustomMetrics" -MetricData $data -Verbose
  
-# Disk
-$disks = Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3" | Select-Object @{Label="DriveLetter"; Expression={$_.DeviceID}},@{Label="Name"; Expression={$_.VolumeName}},@{Label="Free"; Expression={“{0:N2}” -f ($_.FreeSpace / 1GB)}},@{Label="Total"; Expression={“{0:N2}” -f ($_.Size / 1GB)}}
-foreach ($disk in $disks) {
-    $drive = $disk.DriveLetter
-    $data = New-Object Amazon.CloudWatch.Model.MetricDatum
-    $dim = New-Object Amazon.CloudWatch.Model.Dimension
-    $dim.Name = "InstanceID"
-    $dim.Value = $instanceID
-    $data.Dimensions = $dim
-    $data.Timestamp = (Get-Date).ToUniversalTime()
-    $data.Unit = "Gigabytes"
-    $data.Value = "$($disk.Total)"
-    $data.MetricName = "$drive Total"
-    Write-CWMetricData -Namespace "CustomMetrics" -MetricData $data -Verbose
- 
-    $data = New-Object Amazon.CloudWatch.Model.MetricDatum
-    $dim = New-Object Amazon.CloudWatch.Model.Dimension
-    $dim.Name = "InstanceID"
-    $dim.Value = $instanceID
-    $data.Dimensions = $dim
-    $data.Timestamp = (Get-Date).ToUniversalTime()
-    $data.Unit = "Gigabytes"
-    $data.Value = "$($disk.Free)"
-    $data.MetricName = "$drive Free"
-    Write-CWMetricData -Namespace "CustomMetrics" -MetricData $data -Verbose
- 
-    $data = New-Object Amazon.CloudWatch.Model.MetricDatum
-    $dim = New-Object Amazon.CloudWatch.Model.Dimension
-    $dim.Name = "InstanceID"
-    $dim.Value = $instanceID
-    $data.Dimensions = $dim
-    $data.Timestamp = (Get-Date).ToUniversalTime()
-    $data.MetricName = "$drive Usage"
-    $data.Unit = "Percent"
-    $data.Value = "$((($disk.Total - $disk.Free) / $disk.Total) * 100)"
-    Write-CWMetricData -Namespace "CustomMetrics" -MetricData $data -Verbose
-}
 echo $object 
 exit 
 '@

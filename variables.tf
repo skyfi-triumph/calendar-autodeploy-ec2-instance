@@ -1,12 +1,3 @@
-variable "state" {
-  type = string
-
-  validation {
-    condition     = contains(["networking", "init", "snapshot", "stop", "start"], var.state)
-    error_message = "Allowed values for state are init|snapshot|stop|start."
-  }
-}
-
 variable "ec2_count" {
   type = number
 }
@@ -15,13 +6,13 @@ variable "ami" {
   type = string
 }
 
-variable "ami_owner" {
-  type = string
-}
+# variable "ami_owner" {
+#   type = string
+# }
 
-variable "ami_filter" {
-  type = string
-}
+# variable "ami_filter" {
+#   type = string
+# }
 
 variable "admin_password" {
   type        = string

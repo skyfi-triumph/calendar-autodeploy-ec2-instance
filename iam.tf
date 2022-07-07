@@ -28,7 +28,11 @@ resource "aws_iam_role_policy" "this" {
           "Effect" : "Allow",
           "Action" : [
             "ssm:*",
-            "cloudwatch:*"
+            "cloudwatch:*",
+            "ec2:*",
+            "lambda:*",
+            "iam:GetRole",
+            "iam:PassRole"
           ],
           "Resource" : "*"
         }
@@ -55,4 +59,45 @@ resource "aws_iam_role" "this" {
       ]
     }
   )
+}
+
+resource "aws_iam_role" "lambda_role" {
+  name = "lambdaRole-cwdashboard"
+  path = "/"
+  assume_role_policy = jsonencode(
+    {
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Effect" : "Allow",
+          "Action" : "sts:AssumeRole",
+          "Principal" : {
+            "Service" : "lambda.amazonaws.com"
+          },
+        }
+      ]
+    }
+  )
+
+  inline_policy {
+    name = "lambda_inline_policy"
+
+    policy = jsonencode({
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "cloudwatch:GetDashboard",
+            "cloudwatch:PutDashboard",
+            "cloudwatch:DeleteDashboards",
+            "ec2:*",
+            "iam:GetRole",
+            "iam:PassRole"
+          ],
+          "Resource" : "*"
+        }
+      ]
+    })
+  }
 }
