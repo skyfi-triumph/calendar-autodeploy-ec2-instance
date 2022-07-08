@@ -64,7 +64,6 @@ resource "aws_lambda_function" "ec2_create_function" {
       REGION                    = var.region
       VOLUME_SIZE               = var.volume_size
       VOLUME_TYPE               = var.volume_type
-      EC2_COUNT                 = var.ec2_count
       AZ                        = module.vpc.azs[0]
       SUBNET_ID                 = module.vpc.public_subnets[0]
       VPC_SG_IDS                = module.sg_ec2.security_group_id

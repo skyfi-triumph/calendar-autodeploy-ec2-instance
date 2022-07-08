@@ -1,22 +1,5 @@
-variable "ec2_count" {
-  type = number
-}
-
 variable "ami" {
   type = string
-}
-
-# variable "ami_owner" {
-#   type = string
-# }
-
-# variable "ami_filter" {
-#   type = string
-# }
-
-variable "admin_password" {
-  type        = string
-  description = "Must adhere to Microsoft Windows password policy"
 }
 
 variable "namespace" {
@@ -27,9 +10,6 @@ variable "region" {
   type = string
 }
 
-# Security groups are only opened for the IP address of the computer you're running `apply` from. You can change this below,
-# or what I do is just update the SG in AWS console if I move to a different location.
-# List of actual ip addresses, and "mine" will be tranformed to your current router's IP.
 variable "ip_addresses" {
   type = list(string)
 }

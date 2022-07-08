@@ -2,19 +2,14 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-data "http" "my_ip" {
-  url = "http://ipv4.icanhazip.com"
-}
-
 locals {
   # security group vars
   tcp          = 6
   udp          = 17
-  ip_addresses = [for ip in var.ip_addresses : "${ip == "mine" ? chomp(data.http.my_ip.body) : ip}/32"]
 
   # vpc vars
   vpc_cidr = "10.200.0.0/16"
-  vpc_name = join("-", [var.namespace, var.region, "vpc"])
+  vpc_name = join("-", [var.namespace, "vpc"])
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 }
 
@@ -40,13 +35,13 @@ module "sg_ec2" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 4.0"
 
-  name        = var.namespace
+  name        = join("-", [var.namespace, "sg"])
   description = "Gaming security group (NICE DCV, Remote Desktop, etc)"
   vpc_id      = module.vpc.vpc_id
 
   egress_rules = ["all-all"]
 
-  ingress_with_cidr_blocks = flatten([for ip in local.ip_addresses : [
+  ingress_with_cidr_blocks = flatten([for ip in var.ip_addresses : [
     {
       rule        = "ssh-tcp"
       cidr_blocks = ip

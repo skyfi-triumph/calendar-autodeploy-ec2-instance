@@ -27,3 +27,4 @@ terraform-mine/
 .idea
 custom.tf
 .DS_Store
+.terraform**
