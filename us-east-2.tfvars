@@ -1,10 +1,10 @@
-ami           = "ami-0333f93378c08f19d"
+ami           = "ami-0ec50da7c84a45620"
 application   = ""
 customer      = ""
 instance_type = "g4dn.xlarge"
 ip_addresses  = [""] ### ip addresses for anyone that needs access to the network/instances
 namespace     = "{var.customer}-{var.application}-{var.stage}-{var.region}"
-region        = "us-east-1"
+region        = "us-east-2"
 stage         = "dev"
 volume_type   = "gp3"
 volume_size   = 250

@@ -1,34 +1,57 @@
 variable "ami" {
-  type = string
+  type        = string
+  description = "AMI of the current Server client wants deployed, which should be put in tfvars."
 }
 
-variable "namespace" {
-  type = string
+variable "application" {
+  type        = string
+  description = "A unique identifier to differentiate this deployment."
+  default     = ""
 }
 
-variable "region" {
-  type = string
+variable "calendar_id" {
+  type        = string
+  description = "An email associated with google calendar."
+}
+
+variable "customer" {
+  type        = string
+  description = "A unique identifier to differentiate this deployment."
+  default     = ""
+}
+
+variable "instance_type" {
+  type        = string
+  description = "Instance type for gaming instances deployed in environment, which should be updated in tfvars."
 }
 
 variable "ip_addresses" {
-  type = list(string)
+  type        = list(string)
+  description = "IP addresses of all personnel needing access to gaming instances, and IP of on-prem server"
 }
 
-# The original guide recommended g4dn (2xlarge minimum); a month later, g5 instances were released, 30% faster. That's 
-# Nvidia T4 vs A10G GPUs respectively. The G5 instances are A10G GPUs. They're intended for machine learning workloads, not 
-# gaming really. But they're RTX chips nonetheless, and absolute MONSTERS. Steam/Oculus will throw "minimum hardware" issues - 
-# that's only because they don't recognize the chip; it's unusual for gaming. Ignore that, you can play anything on Ultra.
-# ---
-# g4dn.2xlarge is cheaper (about $.70/h); g5.2xlarge is stronger (about $1.4/h). See https://aws.amazon.com/ec2/pricing/on-demand/. 
-# *.xlarge for 4vcpu/16gb RAM; *.2xlarge for 8vcpu/32gb RAM. IMO, 2xlarge is the sweet spot; less is too little, more is too much.
-variable "instance_type" {
-  type = string
+variable "namespace" {
+  type        = string
+  description = "Namespace used for tagging and naming purposes, which should be updated in tfvars."
+}
+
+variable "region" {
+  type        = string
+  description = "Region this solution will be deployed in, which should be updated in tfvars."
+}
+
+variable "stage" {
+  type        = string
+  description = "Stage (aka environment) name, such as 'dev', 'test', or 'prod'"
+  default     = ""
 }
 
 variable "volume_size" {
-  type = number
+  type        = number
+  description = "Desired size for volume attached to EC2 instances, which should be updated in tfvars."
 }
 
 variable "volume_type" {
-  type = string
+  type        = string
+  description = "Type of volume attached to EC2 instances, which should be updated in tfvars.  gp2 or gp3"
 }

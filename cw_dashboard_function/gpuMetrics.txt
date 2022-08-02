@@ -1,18 +1,19 @@
 <powershell>
+#### This script from <powershell> to <powershell> is an UserData script that can be run on new instances(already setup on current ORG AMIs)(set password in script first) ###
+### This script configures a server for usage with AWS custom CloudWatch metrics.  It creates scheduled tasks to run the custom metrics script on a schedule. ###
+### Setting Admin Password (replace ${admin_password} with desired password)(delete from script if you don't want to change password) ###
 netsh advfirewall firewall add rule name="WinRM in" protocol=TCP dir=in profile=any localport=5985 remoteip=any localip=any action=allow
 $admin = [adsi]("WinNT://./administrator, user")
 $admin.psbase.invoke("SetPassword", "${admin_password}")
-
-### This script configures a server for usage with AWS custom CloudWatch metrics.  It creates scheduled tasks to run the custom metrics script on a schedule. ###
-Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
 # Set Execution Policy
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force
 
 # Install AWS Powershell Module
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 Install-Module AWSPowershell -Force
 
-# Create scheduled task for custom CloudWatch metrics
+### Create scheduled task for custom CloudWatch metrics
 $path = "C:\Scripts\GPUStats.ps1" # Specify path to cloudwatch custom metric script
 $taskName = 'AWSCloudWatchCustomMetrics' 
 $description = 'Scheduled task for custom CloudWatch metrics' 
@@ -30,8 +31,8 @@ $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument '-Command 
 $trigger = New-ScheduledTaskTrigger -AtStartup
 Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "AWSCloudWatchInit" -Description "Starts indefinite repetition of AWSCloudWatch task"
 
-
-
+### Above sets Admin Password and creates Task Schedulers to run below code ###
+### Below code pulls custom and NVIDIA GPU metrics, creates CloudWatch metrics and pushes to AWS ###
 mkdir C:\Scripts 
 New-Item C:\Scripts\GPUStats.ps1
 Set-Content C:\Scripts\GPUStats.ps1 -Value @' 

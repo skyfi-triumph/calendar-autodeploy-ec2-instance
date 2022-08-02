@@ -1,0 +1,5 @@
+region         = "us-east-1"
+bucket         = "terraform-state-bucket"
+key            = "terraform.tfstate"
+acl            = "private"
+dynamodb_table = "terraform-state-lock"

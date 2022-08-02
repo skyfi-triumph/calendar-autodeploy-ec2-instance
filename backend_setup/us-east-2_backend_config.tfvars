@@ -1,0 +1,5 @@
+region      = "us-east-2"
+acl         = "private"
+customer    = ""
+application = ""
+stage       = "dev"

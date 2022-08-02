@@ -1,0 +1,48 @@
+image: triumphtech/triumph-terraform-pipelines:latest
+
+definitions:
+  steps:
+    - step: &secrets-scan # https://bitbucket.org/product/features/pipelines/integrations?p=atlassian/git-secrets-scan
+        name: secrets-scan
+        script:
+          - pipe: atlassian/git-secrets-scan:0.6.1
+            variables:
+              FILES: '*.tf *.py *.sh *.ps *.ps1 *.txt'
+    - step: &tf-test
+        name: tflint-tfsec
+        script:
+          - tflint .
+          - tfsec .    
+    - step: &tf-plan
+        name: tf-plan
+        script:
+          - terraform init -input=false -backend-config="us-east-1_backend_config.tfvars"
+          - terraform validate
+          - terraform plan -input=false -var-file="us-east-1.tfvars"
+
+pipelines:
+  default:
+    - parallel:
+        - step: *secrets-scan
+        - step: *tf-test
+    - step: *tf-plan
+        
+  branches:
+    main:
+    - parallel:
+        - step: *secrets-scan
+        - step: *tf-test
+    - step:
+        name: tf-apply-us-east-1
+        trigger: manual
+        script:
+          - terraform init -input=false -backend-config="us-east-1_backend_config.tfvars"
+          - terraform validate
+          - terraform apply -input=false -auto-approve -var-file="us-east-1.tfvars"
+    - step:
+        name: tf-apply-us-east-2
+        trigger: manual
+        script:
+          - terraform init -input=false -backend-config="us-east-2_backend_config.tfvars"
+          - terraform validate
+          - terraform apply -input=false -auto-approve -var-file="us-east-2.tfvars"

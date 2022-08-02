@@ -1,0 +1,14 @@
+[pylint.FORMAT]
+disable = C0301, C0103
+max-line-length = 150
+
+[pylint.BASIC]
+good-names=
+    i,
+    e,
+    k,
+    v,
+    logger
+
+[pylint.LOGGING]
+logging-format-style=new
